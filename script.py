@@ -25,12 +25,16 @@ def remove_chastisement(schoolkid):
 
 
 def create_commendation(schoolkid, subject, commendation):
-    lessons_student = Lesson.objects.filter(
+    student_lessons = Lesson.objects.filter(
         year_of_study=schoolkid.year_of_study,
         group_letter=schoolkid.group_letter,
         subject__title__contains=subject,
     ).order_by("-date")
-    lesson_student = lessons_student.first()
+    try:
+        lesson_student = student_lessons.first()
+    except Lesson.DoesNotExist:
+        print("Урок не найден.")
+        return
     Commendation.objects.create(
         text=commendation,
         created=lesson_student.date,
@@ -42,7 +46,14 @@ def create_commendation(schoolkid, subject, commendation):
 
 def main():
     full_name = input("Введите полностью ФИО ученика: ")
-    schoolkid = Schoolkid.objects.get(full_name__contains=full_name)
+    try:
+        schoolkid = Schoolkid.objects.get(full_name__contains=full_name)
+    except Schoolkid.MultipleObjectsReturned:
+        print("Найденно несколько учеников, уточните ФИО.")
+        return
+    except Schoolkid.DoesNotExist:
+        print("Ученик, с таким ФИО не найден.")
+        return
     commendation = random.choice(example_commendation)
     subject = input("Введите предмет: ")
     remove_chastisement(schoolkid)
@@ -52,3 +63,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
